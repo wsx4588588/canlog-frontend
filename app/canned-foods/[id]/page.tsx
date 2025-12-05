@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, Trash2, Loader2, Calendar, Package } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { NutritionDisplay } from '@/components/nutrition-display';
-import { getCannedFood, deleteCannedFood, getImageUrl } from '@/lib/api';
-import type { CannedFood } from '@/lib/types';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Trash2, Loader2, Calendar, Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { NutritionDisplay } from "@/components/nutrition-display";
+import { getCannedFood, deleteCannedFood, getImageUrl } from "@/lib/api";
+import type { CannedFood } from "@/lib/types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PageProps {
   params: { id: string };
@@ -16,6 +17,7 @@ interface PageProps {
 
 export default function CannedFoodDetailPage({ params }: PageProps) {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [cannedFood, setCannedFood] = useState<CannedFood | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -27,7 +29,7 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
         const data = await getCannedFood(parseInt(params.id, 10));
         setCannedFood(data);
       } catch (err) {
-        setError('找不到此罐頭資料');
+        setError("找不到此罐頭資料");
       } finally {
         setLoading(false);
       }
@@ -38,25 +40,25 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
 
   const handleDelete = async () => {
     if (!cannedFood) return;
-    if (!confirm('確定要刪除此筆資料嗎？')) return;
+    if (!confirm("確定要刪除此筆資料嗎？")) return;
 
     setDeleting(true);
     try {
       await deleteCannedFood(cannedFood.id);
-      router.push('/');
+      router.push("/");
     } catch (err) {
-      alert('刪除失敗，請重試');
+      alert("刪除失敗，請重試");
       setDeleting(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("zh-TW", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -74,7 +76,9 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
         <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
           <Package className="h-10 w-10 text-muted-foreground/50" />
         </div>
-        <h3 className="text-lg font-medium text-muted-foreground">{error || '找不到此罐頭資料'}</h3>
+        <h3 className="text-lg font-medium text-muted-foreground">
+          {error || "找不到此罐頭資料"}
+        </h3>
         <Button asChild className="mt-4">
           <Link href="/">返回列表</Link>
         </Button>
@@ -92,19 +96,22 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
             返回列表
           </Link>
         </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={deleting}
-        >
-          {deleting ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4 mr-2" />
-          )}
-          刪除
-        </Button>
+        {/* 只有 admin 才顯示刪除按鈕 */}
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
+            刪除
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -148,23 +155,6 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
           <NutritionDisplay cannedFood={cannedFood} showDryMatter={true} />
         </div>
       </div>
-
-      {/* 原始回應（可選顯示） */}
-      {cannedFood.rawResponse && (
-        <Card className="animate-fade-in animate-delay-300">
-          <CardContent className="p-4">
-            <details>
-              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                查看 AI 原始回應
-              </summary>
-              <pre className="mt-3 p-4 bg-muted rounded-lg text-xs overflow-x-auto whitespace-pre-wrap font-mono">
-                {cannedFood.rawResponse}
-              </pre>
-            </details>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
-

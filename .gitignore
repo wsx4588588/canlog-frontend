@@ -24,6 +24,10 @@ yarn-error.log*
 # Vercel
 .vercel
 
+# Cloudflare
+.open-next/
+.wrangler/
+
 # IDE
 .idea/
 .vscode/

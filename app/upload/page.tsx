@@ -3,7 +3,8 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
-import { Upload, ImageIcon, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import Link from 'next/link';
+import { Upload, ImageIcon, Loader2, CheckCircle2, AlertCircle, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -11,11 +12,13 @@ import { Badge } from '@/components/ui/badge';
 import { analyzeImage } from '@/lib/api';
 import type { CannedFood } from '@/lib/types';
 import { NutritionDisplay } from '@/components/nutrition-display';
+import { useAuth } from '@/hooks/useAuth';
 
 type UploadStatus = 'idle' | 'uploading' | 'analyzing' | 'success' | 'error';
 
 export default function UploadPage() {
   const router = useRouter();
+  const { isAdmin, isLoading, isAuthenticated } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
@@ -74,6 +77,37 @@ export default function UploadPage() {
     setError(null);
     setResult(null);
   };
+
+  // 載入中
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // 權限檢查：未登入或非 admin
+  if (!isAuthenticated || !isAdmin) {
+    return (
+      <div className="max-w-md mx-auto text-center space-y-6 py-20">
+        <div className="mx-auto w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+          <ShieldAlert className="h-10 w-10 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">權限不足</h1>
+          <p className="text-muted-foreground">
+            {!isAuthenticated 
+              ? "請先登入以使用此功能" 
+              : "此功能僅限管理員使用"}
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/">返回首頁</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
