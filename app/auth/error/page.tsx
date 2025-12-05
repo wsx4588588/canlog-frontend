@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Home, RefreshCw } from 'lucide-react';
+import { AlertCircle, Home, RefreshCw, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const errorMessages: Record<string, string> = {
@@ -14,13 +15,13 @@ const errorMessages: Record<string, string> = {
   default: '登入過程中發生錯誤',
 };
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
-  const errorCode = searchParams.get('error') || 'default';
-  const errorMessage = errorMessages[errorCode] || errorMessages.default;
+  const errorCode = searchParams.get('error') || searchParams.get('message') || 'default';
+  const errorMessage = errorMessages[errorCode] || errorCode;
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -56,3 +57,18 @@ export default function AuthErrorPage() {
   );
 }
 
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ErrorContent />
+    </Suspense>
+  );
+}
