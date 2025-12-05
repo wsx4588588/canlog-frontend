@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 
 export default function AuthSuccessPage() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function AuthSuccessPage() {
   useEffect(() => {
     if (!checking && isAuthenticated) {
       const timer = setTimeout(() => {
-        router.push('/');
+        router.push("/");
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -65,11 +65,9 @@ export default function AuthSuccessPage() {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-muted-foreground">
-              {error || '無法驗證您的登入狀態，請重新嘗試'}
+              {error || "無法驗證您的登入狀態，請重新嘗試"}
             </p>
-            <Button onClick={() => router.push('/')}>
-              返回首頁
-            </Button>
+            <Button onClick={() => router.push("/")}>返回首頁</Button>
           </CardContent>
         </Card>
       </div>
@@ -90,4 +88,3 @@ export default function AuthSuccessPage() {
     </div>
   );
 }
-
