@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Noto_Sans_TC, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/layout/header';
+import { Providers } from '@/components/providers/Providers';
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ['latin'],
@@ -27,12 +28,14 @@ export default function RootLayout({
   return (
     <html lang="zh-TW">
       <body className={`${notoSansTC.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
-          <Header />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
-        </div>
+        <Providers>
+          <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+            <Header />
+            <main className="container mx-auto px-4 py-8">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

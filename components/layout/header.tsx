@@ -2,15 +2,24 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Cat, Upload, List } from 'lucide-react';
+import { Cat, Upload, List, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
+import { UserMenu } from '@/components/auth/UserMenu';
 
 export function Header() {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading, isAdmin, user } = useAuth();
 
+  // 基本導航項目
   const navItems = [
     { href: '/', label: '罐頭列表', icon: List },
-    { href: '/upload', label: '上傳分析', icon: Upload },
   ];
+
+  // 只有 admin 才顯示上傳分析
+  if (isAdmin) {
+    navItems.push({ href: '/upload', label: '上傳分析', icon: Upload });
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
@@ -30,28 +39,40 @@ export function Header() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                  ${isActive 
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }
-                `}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center gap-4">
+          <nav className="flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive 
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    }
+                  `}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="h-6 w-px bg-border" />
+
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : isAuthenticated && user ? (
+            <UserMenu user={user} />
+          ) : (
+            <GoogleLoginButton />
+          )}
+        </div>
       </div>
     </header>
   );

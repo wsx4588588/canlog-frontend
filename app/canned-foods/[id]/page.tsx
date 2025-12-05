@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { NutritionDisplay } from '@/components/nutrition-display';
 import { getCannedFood, deleteCannedFood, getImageUrl } from '@/lib/api';
 import type { CannedFood } from '@/lib/types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PageProps {
   params: { id: string };
@@ -16,6 +17,7 @@ interface PageProps {
 
 export default function CannedFoodDetailPage({ params }: PageProps) {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [cannedFood, setCannedFood] = useState<CannedFood | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -92,19 +94,22 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
             返回列表
           </Link>
         </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={deleting}
-        >
-          {deleting ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4 mr-2" />
-          )}
-          刪除
-        </Button>
+        {/* 只有 admin 才顯示刪除按鈕 */}
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
+            刪除
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

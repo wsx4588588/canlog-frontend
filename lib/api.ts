@@ -4,92 +4,46 @@ import type { CannedFood, PaginatedResponse, AnalyzeResponse } from "./types";
 interface QueryParams {
   search?: string;
   brandName?: string;
+  minPhosphorusPer100kcal?: number;
+  maxPhosphorusPer100kcal?: number;
   page?: number;
   limit?: number;
-}
-
-// API 回傳的營養值結構
-interface NutritionValue {
-  value: number | null;
-  unit: string | null;
-}
-
-// API 回傳的原始資料結構
-interface ApiCannedFoodResponse {
-  id: number;
-  brandName: string;
-  productName: string;
-  imageUrl?: string;
-  nutrition: {
-    calories?: NutritionValue;
-    protein?: NutritionValue;
-    fat?: NutritionValue;
-    fiber?: NutritionValue;
-    ash?: NutritionValue;
-    moisture?: NutritionValue;
-    phosphorus?: NutritionValue;
-    calcium?: NutritionValue;
-    sodium?: NutritionValue;
-    magnesium?: NutritionValue;
-    potassium?: NutritionValue;
-  };
-  rawResponse?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * 將 API 回傳的 nested 結構轉換成 flat 的 CannedFood 類型
- */
-function transformApiResponse(data: ApiCannedFoodResponse): CannedFood {
-  const nutrition = data.nutrition || {};
-
-  return {
-    id: data.id,
-    brandName: data.brandName,
-    productName: data.productName,
-    imageUrl: data.imageUrl,
-    nutritionFormat: "percentage", // API 回傳的是百分比格式
-    calories: nutrition.calories?.value ?? undefined,
-    protein: nutrition.protein?.value ?? undefined,
-    fat: nutrition.fat?.value ?? undefined,
-    fiber: nutrition.fiber?.value ?? undefined,
-    ash: nutrition.ash?.value ?? undefined,
-    moisture: nutrition.moisture?.value ?? undefined,
-    phosphorus: nutrition.phosphorus?.value ?? undefined,
-    calcium: nutrition.calcium?.value ?? undefined,
-    sodium: nutrition.sodium?.value ?? undefined,
-    magnesium: nutrition.magnesium?.value ?? undefined,
-    potassium: nutrition.potassium?.value ?? undefined,
-    rawResponse: data.rawResponse,
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
-  };
+  signal?: AbortSignal;
 }
 
 export async function getCannedFoods(
   params: QueryParams = {}
 ): Promise<PaginatedResponse<CannedFood>> {
+  const { signal, ...queryParams } = params;
   const searchParams = new URLSearchParams();
 
-  if (params.search) searchParams.set("search", params.search);
-  if (params.brandName) searchParams.set("brandName", params.brandName);
-  if (params.page) searchParams.set("page", params.page.toString());
-  if (params.limit) searchParams.set("limit", params.limit.toString());
+  if (queryParams.search) searchParams.set("search", queryParams.search);
+  if (queryParams.brandName)
+    searchParams.set("brandName", queryParams.brandName);
+  if (queryParams.minPhosphorusPer100kcal !== undefined)
+    searchParams.set(
+      "minPhosphorusPer100kcal",
+      queryParams.minPhosphorusPer100kcal.toString()
+    );
+  if (queryParams.maxPhosphorusPer100kcal !== undefined)
+    searchParams.set(
+      "maxPhosphorusPer100kcal",
+      queryParams.maxPhosphorusPer100kcal.toString()
+    );
+  if (queryParams.page) searchParams.set("page", queryParams.page.toString());
+  if (queryParams.limit)
+    searchParams.set("limit", queryParams.limit.toString());
 
   const response = await fetch(
-    `${API_BASE_URL}/api/canned-foods?${searchParams.toString()}`
+    `${API_BASE_URL}/api/canned-foods?${searchParams.toString()}`,
+    { signal }
   );
 
   if (!response.ok) {
     throw new Error("Failed to fetch canned foods");
   }
 
-  const data: PaginatedResponse<ApiCannedFoodResponse> = await response.json();
-  return {
-    ...data,
-    items: data.items.map(transformApiResponse),
-  };
+  return response.json();
 }
 
 export async function getCannedFood(id: number): Promise<CannedFood> {
@@ -99,8 +53,7 @@ export async function getCannedFood(id: number): Promise<CannedFood> {
     throw new Error("Failed to fetch canned food");
   }
 
-  const data: ApiCannedFoodResponse = await response.json();
-  return transformApiResponse(data);
+  return response.json();
 }
 
 export async function getBrands(): Promise<string[]> {
@@ -121,6 +74,7 @@ export async function analyzeImage(file: File): Promise<AnalyzeResponse> {
   const response = await fetch(`${API_BASE_URL}/api/canned-foods/analyze`, {
     method: "POST",
     body: formData,
+    credentials: "include", // 需要登入驗證
   });
 
   if (!response.ok) {
@@ -130,17 +84,13 @@ export async function analyzeImage(file: File): Promise<AnalyzeResponse> {
     throw new Error(error.message || "Failed to analyze image");
   }
 
-  const result: { success: boolean; data: ApiCannedFoodResponse } =
-    await response.json();
-  return {
-    success: result.success,
-    data: transformApiResponse(result.data),
-  };
+  return response.json();
 }
 
 export async function deleteCannedFood(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/canned-foods/${id}`, {
     method: "DELETE",
+    credentials: "include", // 需要登入驗證
   });
 
   if (!response.ok) {
