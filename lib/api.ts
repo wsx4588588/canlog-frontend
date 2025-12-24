@@ -1,5 +1,11 @@
 import { API_BASE_URL } from "./utils";
-import type { CannedFood, PaginatedResponse, AnalyzeResponse } from "./types";
+import type {
+  CannedFood,
+  PaginatedResponse,
+  AnalyzeResponse,
+  SortField,
+  SortOrder,
+} from "./types";
 
 interface QueryParams {
   search?: string;
@@ -8,6 +14,8 @@ interface QueryParams {
   maxPhosphorusPer100kcal?: number;
   page?: number;
   limit?: number;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
   signal?: AbortSignal;
 }
 
@@ -33,6 +41,9 @@ export async function getCannedFoods(
   if (queryParams.page) searchParams.set("page", queryParams.page.toString());
   if (queryParams.limit)
     searchParams.set("limit", queryParams.limit.toString());
+  if (queryParams.sortBy) searchParams.set("sortBy", queryParams.sortBy);
+  if (queryParams.sortOrder)
+    searchParams.set("sortOrder", queryParams.sortOrder);
 
   const response = await fetch(
     `${API_BASE_URL}/api/canned-foods?${searchParams.toString()}`,

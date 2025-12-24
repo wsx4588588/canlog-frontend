@@ -1,3 +1,22 @@
+// 排序欄位枚舉
+export enum SortField {
+  PROTEIN = "protein",
+  FAT = "fat",
+  PHOSPHORUS_PER_100KCAL = "phosphorusPer100kcal",
+  CALCIUM_PHOSPHORUS_RATIO = "calciumPhosphorusRatio",
+  CALORIES = "calories",
+  CREATED_AT = "createdAt",
+}
+
+// 排序方向枚舉
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+
+// 視圖模式
+export type ViewMode = "card" | "table";
+
 // 營養素值結構（原始資料）
 export interface NutritionValue {
   value: number | null;

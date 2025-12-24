@@ -16,7 +16,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'canlog-backend.onrender.com',
+        hostname: 'canlog-backend-169139169254.asia-east1.run.app',
         pathname: '/**',
       },
     ],

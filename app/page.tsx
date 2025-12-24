@@ -10,13 +10,17 @@ import {
   Loader2,
   Filter,
   X,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CannedFoodTable } from "@/components/canned-food-table";
 import { getCannedFoods, getImageUrl } from "@/lib/api";
-import type { CannedFood, PaginatedResponse } from "@/lib/types";
+import type { CannedFood, PaginatedResponse, ViewMode } from "@/lib/types";
+import { SortField, SortOrder } from "@/lib/types";
 
 export default function HomePage() {
   const [data, setData] = useState<PaginatedResponse<CannedFood> | null>(null);
@@ -25,6 +29,13 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState(""); // 實際查詢的值
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  // 視圖模式狀態
+  const [viewMode, setViewMode] = useState<ViewMode>("card");
+
+  // 排序狀態
+  const [sortBy, setSortBy] = useState<SortField | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
 
   // 磷過濾狀態
   const [showFilter, setShowFilter] = useState(false);
@@ -42,9 +53,15 @@ export default function HomePage() {
     minPhosphorus !== undefined || maxPhosphorus !== undefined;
 
   // 用於追蹤當前查詢參數，避免不必要的頁數重置
-  const prevQueryRef = useRef({ searchQuery, minPhosphorus, maxPhosphorus });
+  const prevQueryRef = useRef({
+    searchQuery,
+    minPhosphorus,
+    maxPhosphorus,
+    sortBy,
+    sortOrder,
+  });
 
-  // Fetch data - 依賴 searchQuery、過濾條件和 page
+  // Fetch data - 依賴 searchQuery、過濾條件、排序和 page
   useEffect(() => {
     const controller = new AbortController();
 
@@ -53,9 +70,17 @@ export default function HomePage() {
     if (
       prevQuery.searchQuery !== searchQuery ||
       prevQuery.minPhosphorus !== minPhosphorus ||
-      prevQuery.maxPhosphorus !== maxPhosphorus
+      prevQuery.maxPhosphorus !== maxPhosphorus ||
+      prevQuery.sortBy !== sortBy ||
+      prevQuery.sortOrder !== sortOrder
     ) {
-      prevQueryRef.current = { searchQuery, minPhosphorus, maxPhosphorus };
+      prevQueryRef.current = {
+        searchQuery,
+        minPhosphorus,
+        maxPhosphorus,
+        sortBy,
+        sortOrder,
+      };
       if (page !== 1) {
         setPage(1);
         return; // 讓下一次 effect 處理
@@ -71,6 +96,8 @@ export default function HomePage() {
           maxPhosphorusPer100kcal: maxPhosphorus,
           page,
           limit,
+          sortBy,
+          sortOrder,
           signal: controller.signal,
         });
         if (!controller.signal.aborted) {
@@ -93,7 +120,7 @@ export default function HomePage() {
     return () => {
       controller.abort();
     };
-  }, [searchQuery, minPhosphorus, maxPhosphorus, page]);
+  }, [searchQuery, minPhosphorus, maxPhosphorus, sortBy, sortOrder, page]);
 
   // 執行搜尋
   const handleSearch = () => {
@@ -127,6 +154,20 @@ export default function HomePage() {
   const handleFilterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleApplyFilter();
+    }
+  };
+
+  // 處理排序
+  const handleSort = (field: SortField) => {
+    if (sortBy === field) {
+      // 切換排序方向
+      setSortOrder(
+        sortOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+      );
+    } else {
+      // 設置新的排序欄位，預設降序
+      setSortBy(field);
+      setSortOrder(SortOrder.DESC);
     }
   };
 
@@ -168,6 +209,27 @@ export default function HomePage() {
               <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-primary rounded-full" />
             )}
           </Button>
+          {/* 視圖切換按鈕 */}
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === "card" ? "secondary" : "ghost"}
+              size="icon"
+              onClick={() => setViewMode("card")}
+              className="rounded-r-none"
+              title="卡片視圖"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "table" ? "secondary" : "ghost"}
+              size="icon"
+              onClick={() => setViewMode("table")}
+              className="rounded-l-none border-l"
+              title="表格視圖"
+            >
+              <Table2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* 磷過濾器 */}
@@ -261,65 +323,81 @@ export default function HomePage() {
       {/* 罐頭列表 */}
       {!loading && data && data.items.length > 0 && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {data.items.map((item, index) => (
-              <Link
-                key={item.id}
-                href={`/canned-foods/${item.id}`}
-                className="block animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <Card className="h-full overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-300">
-                  {/* 圖片 */}
-                  <div className="aspect-[4/3] bg-muted overflow-hidden">
-                    {item.imageUrl ? (
-                      <img
-                        src={getImageUrl(item.imageUrl)}
-                        alt={item.productName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-12 w-12 text-muted-foreground/30" />
-                      </div>
-                    )}
-                  </div>
+          {/* 表格視圖 */}
+          {viewMode === "table" && (
+            <div className="animate-fade-in">
+              <CannedFoodTable
+                items={data.items}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+              />
+            </div>
+          )}
 
-                  <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <div>
-                        <h3 className="font-semibold line-clamp-1 group-hover:text-primary transition-colors">
-                          {item.productName}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {item.brandName}
-                        </p>
-                      </div>
-
-                      {/* 營養摘要 - 直接使用計算後的欄位 */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {item.protein != null && (
-                          <Badge variant="outline" className="text-xs">
-                            蛋白質 {item.protein.toFixed(1)}%
-                          </Badge>
-                        )}
-                        {item.phosphorusPer100kcal != null && (
-                          <Badge variant="outline" className="text-xs">
-                            磷 {item.phosphorusPer100kcal.toFixed(0)}mg/100kcal
-                          </Badge>
-                        )}
-                        {item.calciumPhosphorusRatio != null && (
-                          <Badge variant="secondary" className="text-xs">
-                            Ca:P {item.calciumPhosphorusRatio.toFixed(2)}
-                          </Badge>
-                        )}
-                      </div>
+          {/* 卡片視圖 */}
+          {viewMode === "card" && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {data.items.map((item, index) => (
+                <Link
+                  key={item.id}
+                  href={`/canned-foods/${item.id}`}
+                  className="block animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <Card className="h-full overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-300">
+                    {/* 圖片 */}
+                    <div className="aspect-[4/3] bg-muted overflow-hidden">
+                      {item.imageUrl ? (
+                        <img
+                          src={getImageUrl(item.imageUrl)}
+                          alt={item.productName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div>
+                          <h3 className="font-semibold line-clamp-1 group-hover:text-primary transition-colors">
+                            {item.productName}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {item.brandName}
+                          </p>
+                        </div>
+
+                        {/* 營養摘要 - 直接使用計算後的欄位 */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.protein != null && (
+                            <Badge variant="outline" className="text-xs">
+                              蛋白質 {item.protein.toFixed(1)}%
+                            </Badge>
+                          )}
+                          {item.phosphorusPer100kcal != null && (
+                            <Badge variant="outline" className="text-xs">
+                              磷 {item.phosphorusPer100kcal.toFixed(0)}
+                              mg/100kcal
+                            </Badge>
+                          )}
+                          {item.calciumPhosphorusRatio != null && (
+                            <Badge variant="secondary" className="text-xs">
+                              Ca:P {item.calciumPhosphorusRatio.toFixed(2)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* 分頁 */}
           {data.meta.totalPages > 1 && (
