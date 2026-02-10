@@ -116,7 +116,7 @@ export function NutritionDisplay({
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-xl">{cannedFood.productName}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">{cannedFood.productName}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               {cannedFood.brandName}
             </p>
@@ -190,7 +190,7 @@ export function NutritionDisplay({
           <h4 className="text-sm font-semibold text-muted-foreground mb-3">
             礦物質成分 (mg/100kcal)
           </h4>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {minerals.map((mineral) => (
               <div
                 key={mineral.label}
@@ -218,7 +218,7 @@ export function NutritionDisplay({
                   關鍵指標
                 </h4>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                   <p className="text-xs text-muted-foreground">磷/100kcal</p>
                   <p className="text-lg font-bold text-primary">

@@ -72,9 +72,9 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
 
   if (error || !cannedFood) {
     return (
-      <div className="text-center py-20">
-        <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Package className="h-10 w-10 text-muted-foreground/50" />
+      <div className="text-center py-12 sm:py-20">
+        <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Package className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/50" />
         </div>
         <h3 className="text-lg font-medium text-muted-foreground">
           {error || "找不到此罐頭資料"}

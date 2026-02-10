@@ -42,10 +42,10 @@ export default function HomePage() {
   const [minPInput, setMinPInput] = useState("");
   const [maxPInput, setMaxPInput] = useState("");
   const [minPhosphorus, setMinPhosphorus] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [maxPhosphorus, setMaxPhosphorus] = useState<number | undefined>(
-    undefined
+    undefined,
   );
 
   // 過濾是否啟用
@@ -162,7 +162,7 @@ export default function HomePage() {
     if (sortBy === field) {
       // 切換排序方向
       setSortOrder(
-        sortOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
+        sortOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC,
       );
     } else {
       // 設置新的排序欄位，預設降序
@@ -175,67 +175,79 @@ export default function HomePage() {
     <div className="space-y-8">
       {/* 頁面標題 */}
       <div className="text-center space-y-2 animate-fade-in">
-        <h1 className="text-3xl font-bold tracking-tight">罐頭列表</h1>
-        <p className="text-muted-foreground">瀏覽已分析的寵物罐頭營養資訊</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          罐頭列表
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          瀏覽已分析的寵物罐頭營養資訊
+        </p>
       </div>
 
       {/* 搜尋欄和過濾 */}
       <div className="max-w-2xl mx-auto space-y-3 animate-fade-in animate-delay-100">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="搜尋品牌或產品名稱..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="pl-10"
-            />
+        <div className="space-y-2">
+          {/* 搜尋框 */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="搜尋品牌或產品名稱..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={handleSearch} disabled={loading}>
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-          <Button onClick={handleSearch} disabled={loading}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Search className="h-4 w-4" />
-            )}
-          </Button>
-          <Button
-            variant={showFilter ? "secondary" : "outline"}
-            onClick={() => setShowFilter(!showFilter)}
-            className="relative"
-          >
-            <Filter className="h-4 w-4" />
-            {isFilterActive && (
-              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-primary rounded-full" />
-            )}
-          </Button>
-          {/* 視圖切換按鈕 */}
-          <div className="flex border rounded-md">
+          {/* 篩選與視圖切換 */}
+          <div className="flex items-center justify-between">
             <Button
-              variant={viewMode === "card" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => setViewMode("card")}
-              className="rounded-r-none"
-              title="卡片視圖"
+              variant={showFilter ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setShowFilter(!showFilter)}
+              className="relative"
             >
-              <LayoutGrid className="h-4 w-4" />
+              <Filter className="h-4 w-4 mr-1.5" />
+              <span className="text-xs">篩選</span>
+              {isFilterActive && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-primary rounded-full" />
+              )}
             </Button>
-            <Button
-              variant={viewMode === "table" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => setViewMode("table")}
-              className="rounded-l-none border-l"
-              title="表格視圖"
-            >
-              <Table2 className="h-4 w-4" />
-            </Button>
+            {/* 視圖切換按鈕 */}
+            <div className="flex border rounded-md">
+              <Button
+                variant={viewMode === "card" ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setViewMode("card")}
+                className="rounded-r-none h-8 w-8 sm:h-9 sm:w-9"
+                title="卡片視圖"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "table" ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setViewMode("table")}
+                className="rounded-l-none border-l h-8 w-8 sm:h-9 sm:w-9"
+                title="表格視圖"
+              >
+                <Table2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* 磷過濾器 */}
         {showFilter && (
-          <div className="flex flex-wrap items-center gap-3 p-4 rounded-lg border bg-card">
-            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg border bg-card">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground whitespace-nowrap">
               磷/100kcal (mg)
             </span>
             <div className="flex items-center gap-2">
@@ -245,7 +257,7 @@ export default function HomePage() {
                 value={minPInput}
                 onChange={(e) => setMinPInput(e.target.value)}
                 onKeyDown={handleFilterKeyDown}
-                className="w-24"
+                className="w-20 sm:w-24"
                 min={0}
               />
               <span className="text-muted-foreground">~</span>
@@ -255,7 +267,7 @@ export default function HomePage() {
                 value={maxPInput}
                 onChange={(e) => setMaxPInput(e.target.value)}
                 onKeyDown={handleFilterKeyDown}
-                className="w-24"
+                className="w-20 sm:w-24"
                 min={0}
               />
             </div>
@@ -295,16 +307,16 @@ export default function HomePage() {
 
       {/* 載入中 */}
       {loading && (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-12 sm:py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
 
       {/* 無資料 */}
       {!loading && data && data.items.length === 0 && (
-        <div className="text-center py-20 animate-fade-in">
-          <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-            <Package className="h-10 w-10 text-muted-foreground/50" />
+        <div className="text-center py-12 sm:py-20 animate-fade-in">
+          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+            <Package className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/50" />
           </div>
           <h3 className="text-lg font-medium text-muted-foreground">
             尚無罐頭資料

@@ -78,3 +78,85 @@ export interface AnalyzeResponse {
   success: boolean;
   data: CannedFood;
 }
+
+// ========== 年菜管理系統 ==========
+
+export enum OrderStatus {
+  NOT_PICKED_UP = "NOT_PICKED_UP",
+  PICKED_UP = "PICKED_UP",
+  CANCELLED = "CANCELLED",
+}
+
+export interface Dish {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItem {
+  id: number;
+  dishId: number;
+  dishName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface Order {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  totalAmount: number;
+  pickupTime: string;
+  note?: string;
+  status: OrderStatus;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDishInput {
+  name: string;
+  price: number;
+  stock?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateDishInput {
+  name?: string;
+  price?: number;
+  stock?: number;
+  isActive?: boolean;
+}
+
+export interface CreateOrderItemInput {
+  dishId: number;
+  quantity: number;
+}
+
+export interface CreateOrderInput {
+  customerName: string;
+  customerPhone: string;
+  pickupTime: string;
+  note?: string;
+  items: CreateOrderItemInput[];
+}
+
+// ========== AI 分析結果 ==========
+
+export interface MenuAnalysisResult {
+  dishes: { name: string; price: number }[];
+}
+
+export interface OrderAnalysisResult {
+  customerName: string;
+  customerPhone: string;
+  pickupTime: string;
+  note: string;
+  totalAmount: number;
+  items: { dishName: string; quantity: number }[];
+}

@@ -5,6 +5,13 @@ import type {
   AnalyzeResponse,
   SortField,
   SortOrder,
+  Dish,
+  Order,
+  CreateDishInput,
+  UpdateDishInput,
+  CreateOrderInput,
+  MenuAnalysisResult,
+  OrderAnalysisResult,
 } from "./types";
 
 interface QueryParams {
@@ -112,4 +119,170 @@ export async function deleteCannedFood(id: number): Promise<void> {
 export function getImageUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${API_BASE_URL}${path}`;
+}
+
+// ========== 年菜料理 API ==========
+
+export async function getDishes(activeOnly?: boolean): Promise<Dish[]> {
+  const params = activeOnly ? "?activeOnly=true" : "";
+  const response = await fetch(`${API_BASE_URL}/api/dishes${params}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch dishes");
+  }
+  return response.json();
+}
+
+export async function createDish(data: CreateDishInput): Promise<Dish> {
+  const response = await fetch(`${API_BASE_URL}/api/dishes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to create dish");
+  }
+  return response.json();
+}
+
+export async function updateDish(id: number, data: UpdateDishInput): Promise<Dish> {
+  const response = await fetch(`${API_BASE_URL}/api/dishes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to update dish");
+  }
+  return response.json();
+}
+
+export async function deleteDish(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/dishes/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete dish");
+  }
+}
+
+// ========== 年菜訂單 API ==========
+
+export async function getOrders(status?: string, search?: string): Promise<Order[]> {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (search) params.set("search", search);
+  const queryString = params.toString();
+  const response = await fetch(`${API_BASE_URL}/api/orders${queryString ? `?${queryString}` : ""}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch orders");
+  }
+  return response.json();
+}
+
+export async function getOrder(id: number): Promise<Order> {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch order");
+  }
+  return response.json();
+}
+
+export async function createOrder(data: CreateOrderInput): Promise<Order> {
+  const response = await fetch(`${API_BASE_URL}/api/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to create order");
+  }
+  return response.json();
+}
+
+export async function updateOrderStatus(id: number, status: string): Promise<Order> {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to update order status");
+  }
+  return response.json();
+}
+
+export async function deleteOrder(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to delete order");
+  }
+}
+
+// ========== AI 圖片分析 API ==========
+
+export async function analyzeMenuImage(file: File): Promise<MenuAnalysisResult> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${API_BASE_URL}/api/dishes/analyze-menu`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "菜單分析失敗");
+  }
+  return response.json();
+}
+
+export async function analyzeOrderImage(file: File): Promise<OrderAnalysisResult> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${API_BASE_URL}/api/orders/analyze-order`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "訂單分析失敗");
+  }
+  return response.json();
+}
+
+export async function batchCreateDishes(
+  dishes: CreateDishInput[],
+): Promise<Dish[]> {
+  const response = await fetch(`${API_BASE_URL}/api/dishes/batch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dishes }),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "批次建立料理失敗");
+  }
+  return response.json();
 }

@@ -97,11 +97,14 @@ export function CannedFoodTable({
 
   return (
     <div className="rounded-md border bg-card">
+      <p className="text-xs text-muted-foreground text-center px-3 py-2 border-b sm:hidden">
+        ← 左右滑動查看更多 →
+      </p>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[120px]">品牌</TableHead>
-            <TableHead className="min-w-[180px]">產品名稱</TableHead>
+            <TableHead className="whitespace-nowrap">品牌</TableHead>
+            <TableHead className="whitespace-nowrap min-w-[140px]">產品名稱</TableHead>
             {columns.map((col) => (
               <TableHead key={col.key} className="text-right">
                 <Button
