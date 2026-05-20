@@ -3,11 +3,18 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Loader2, Calendar, Package } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, Calendar, Package, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NutritionDisplay } from "@/components/nutrition-display";
-import { getCannedFood, deleteCannedFood, getImageUrl } from "@/lib/api";
+import {
+  getCannedFood,
+  deleteCannedFood,
+  getImageUrl,
+  checkFavorites,
+  addFavorite,
+  removeFavorite,
+} from "@/lib/api";
 import type { CannedFood } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -17,11 +24,12 @@ interface PageProps {
 
 export default function CannedFoodDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
   const [cannedFood, setCannedFood] = useState<CannedFood | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +45,36 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
 
     fetchData();
   }, [params.id]);
+
+  // 載入收藏狀態
+  useEffect(() => {
+    if (!isAuthenticated || !cannedFood) return;
+
+    checkFavorites([cannedFood.id])
+      .then((result) => {
+        setIsFavorite(!!result[cannedFood.id]);
+      })
+      .catch(() => {
+        // 忽略錯誤
+      });
+  }, [isAuthenticated, cannedFood]);
+
+  const handleToggleFavorite = async () => {
+    if (!cannedFood) return;
+
+    const wasFavorite = isFavorite;
+    setIsFavorite(!wasFavorite);
+
+    try {
+      if (wasFavorite) {
+        await removeFavorite(cannedFood.id);
+      } else {
+        await addFavorite(cannedFood.id);
+      }
+    } catch {
+      setIsFavorite(wasFavorite);
+    }
+  };
 
   const handleDelete = async () => {
     if (!cannedFood) return;
@@ -96,6 +134,24 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
             返回列表
           </Link>
         </Button>
+        <div className="flex items-center gap-2">
+          {/* 收藏按鈕 */}
+          {isAuthenticated && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleFavorite}
+            >
+              <Heart
+                className={`h-4 w-4 mr-2 transition-colors ${
+                  isFavorite
+                    ? "fill-red-500 text-red-500"
+                    : ""
+                }`}
+              />
+              {isFavorite ? "已收藏" : "收藏"}
+            </Button>
+          )}
         {/* 只有 admin 才顯示刪除按鈕 */}
         {isAdmin && (
           <Button
@@ -112,6 +168,7 @@ export default function CannedFoodDetailPage({ params }: PageProps) {
             刪除
           </Button>
         )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

@@ -12,19 +12,23 @@ import {
   X,
   LayoutGrid,
   Table2,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CannedFoodTable } from "@/components/canned-food-table";
-import { getCannedFoods, getImageUrl } from "@/lib/api";
+import { getCannedFoods, getImageUrl, checkFavorites, addFavorite, removeFavorite } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import type { CannedFood, PaginatedResponse, ViewMode } from "@/lib/types";
 import { SortField, SortOrder } from "@/lib/types";
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
   const [data, setData] = useState<PaginatedResponse<CannedFood> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [searchInput, setSearchInput] = useState(""); // 輸入框的值
   const [searchQuery, setSearchQuery] = useState(""); // 實際查詢的值
   const [page, setPage] = useState(1);
@@ -121,6 +125,65 @@ export default function HomePage() {
       controller.abort();
     };
   }, [searchQuery, minPhosphorus, maxPhosphorus, sortBy, sortOrder, page]);
+
+  // 載入收藏狀態
+  useEffect(() => {
+    if (!isAuthenticated || !data || data.items.length === 0) return;
+
+    const ids = data.items.map((item) => item.id);
+    checkFavorites(ids)
+      .then((result) => {
+        const favSet = new Set<number>();
+        for (const [id, isFav] of Object.entries(result)) {
+          if (isFav) favSet.add(Number(id));
+        }
+        setFavorites(favSet);
+      })
+      .catch(() => {
+        // 忽略收藏載入錯誤
+      });
+  }, [isAuthenticated, data]);
+
+  // 切換收藏狀態
+  const handleToggleFavorite = async (
+    e: React.MouseEvent,
+    cannedFoodId: number
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isFav = favorites.has(cannedFoodId);
+
+    // 樂觀更新
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (isFav) {
+        next.delete(cannedFoodId);
+      } else {
+        next.add(cannedFoodId);
+      }
+      return next;
+    });
+
+    try {
+      if (isFav) {
+        await removeFavorite(cannedFoodId);
+      } else {
+        await addFavorite(cannedFoodId);
+      }
+    } catch {
+      // 還原
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (isFav) {
+          next.add(cannedFoodId);
+        } else {
+          next.delete(cannedFoodId);
+        }
+        return next;
+      });
+    }
+  };
 
   // 執行搜尋
   const handleSearch = () => {
@@ -357,7 +420,23 @@ export default function HomePage() {
                   className="block animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <Card className="h-full overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-300">
+                  <Card className="h-full overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-300 relative">
+                    {/* 收藏按鈕 */}
+                    {isAuthenticated && (
+                      <button
+                        onClick={(e) => handleToggleFavorite(e, item.id)}
+                        className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                        aria-label={favorites.has(item.id) ? "取消收藏" : "收藏"}
+                      >
+                        <Heart
+                          className={`h-4 w-4 transition-colors ${
+                            favorites.has(item.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </button>
+                    )}
                     {/* 圖片 */}
                     <div className="aspect-[4/3] bg-muted overflow-hidden">
                       {item.imageUrl ? (

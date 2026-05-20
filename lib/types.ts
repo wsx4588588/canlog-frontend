@@ -146,6 +146,61 @@ export interface CreateOrderInput {
   items: CreateOrderItemInput[];
 }
 
+// ========== 罐罐筆記 ==========
+
+export enum CatReaction {
+  LOVED = "loved",
+  LIKED = "liked",
+  NEUTRAL = "neutral",
+  DISLIKED = "disliked",
+  REFUSED = "refused",
+}
+
+export interface Cat {
+  id: number;
+  name: string;
+  avatarUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FeedingRecord {
+  id: number;
+  cat: { id: number; name: string };
+  cannedFood: {
+    id: number;
+    brandName: string;
+    productName: string;
+    imageUrl?: string | null;
+  };
+  reaction: CatReaction;
+  rating?: number | null;
+  note?: string | null;
+  fedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCatInput {
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface CreateFeedingRecordInput {
+  cannedFoodId: number;
+  reaction: CatReaction;
+  rating?: number;
+  note?: string;
+  fedAt?: string;
+}
+
+export interface UpdateFeedingRecordInput {
+  reaction?: CatReaction;
+  rating?: number;
+  note?: string;
+  fedAt?: string;
+}
+
 // ========== AI 分析結果 ==========
 
 export interface MenuAnalysisResult {

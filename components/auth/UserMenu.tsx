@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, User as UserIcon, ChevronDown, Loader2 } from 'lucide-react';
+import { LogOut, User as UserIcon, ChevronDown, Loader2, Cat, Heart } from 'lucide-react';
 import type { User } from '@/types/auth';
 
 interface UserMenuProps {
@@ -59,6 +59,20 @@ export function UserMenu({ user }: UserMenuProps) {
               <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
             <div className="p-1">
+              <button
+                onClick={() => { router.push('/my-cats'); setIsOpen(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
+              >
+                <Cat className="h-4 w-4" />
+                我的貓咪
+              </button>
+              <button
+                onClick={() => { router.push('/my-favorites'); setIsOpen(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
+              >
+                <Heart className="h-4 w-4" />
+                我的收藏
+              </button>
               <button
                 onClick={handleLogout}
                 disabled={isLoading}

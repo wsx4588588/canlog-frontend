@@ -12,6 +12,11 @@ import type {
   CreateOrderInput,
   MenuAnalysisResult,
   OrderAnalysisResult,
+  Cat,
+  FeedingRecord,
+  CreateCatInput,
+  CreateFeedingRecordInput,
+  UpdateFeedingRecordInput,
 } from "./types";
 
 interface QueryParams {
@@ -119,6 +124,70 @@ export async function deleteCannedFood(id: number): Promise<void> {
 export function getImageUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${API_BASE_URL}${path}`;
+}
+
+// ========== 罐頭收藏 API ==========
+
+export async function addFavorite(cannedFoodId: number): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/canned-foods/${cannedFoodId}/favorite`,
+    {
+      method: "POST",
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to add favorite");
+  }
+}
+
+export async function removeFavorite(cannedFoodId: number): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/canned-foods/${cannedFoodId}/favorite`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to remove favorite");
+  }
+}
+
+export async function checkFavorites(
+  ids: number[]
+): Promise<Record<number, boolean>> {
+  if (ids.length === 0) return {};
+  const response = await fetch(
+    `${API_BASE_URL}/api/canned-foods/favorites/check?ids=${ids.join(",")}`,
+    {
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to check favorites");
+  }
+  return response.json();
+}
+
+export async function getMyFavorites(
+  params?: { page?: number; limit?: number }
+): Promise<PaginatedResponse<CannedFood>> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", params.page.toString());
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+
+  const query = searchParams.toString();
+  const response = await fetch(
+    `${API_BASE_URL}/api/canned-foods/my-favorites${query ? `?${query}` : ""}`,
+    {
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch favorites");
+  }
+  return response.json();
 }
 
 // ========== 年菜料理 API ==========
@@ -269,6 +338,142 @@ export async function analyzeOrderImage(file: File): Promise<OrderAnalysisResult
     throw new Error(error.message || "訂單分析失敗");
   }
   return response.json();
+}
+
+// ========== 罐罐筆記 API ==========
+
+export async function uploadCatAvatar(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("image", file);
+  const response = await fetch(`${API_BASE_URL}/api/cats/upload-avatar`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "上傳失敗");
+  }
+  const data = await response.json();
+  return data.url;
+}
+
+export async function getCats(): Promise<Cat[]> {
+  const response = await fetch(`${API_BASE_URL}/api/cats`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to fetch cats");
+  return response.json();
+}
+
+export async function createCat(data: CreateCatInput): Promise<Cat> {
+  const response = await fetch(`${API_BASE_URL}/api/cats`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to create cat");
+  }
+  return response.json();
+}
+
+export async function updateCat(
+  id: number,
+  data: Partial<CreateCatInput>
+): Promise<Cat> {
+  const response = await fetch(`${API_BASE_URL}/api/cats/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to update cat");
+  }
+  return response.json();
+}
+
+export async function deleteCat(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/cats/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to delete cat");
+}
+
+export async function getFeedingRecords(
+  catId: number,
+  params?: { cannedFoodId?: number; page?: number; limit?: number }
+): Promise<PaginatedResponse<FeedingRecord>> {
+  const searchParams = new URLSearchParams();
+  if (params?.cannedFoodId)
+    searchParams.set("cannedFoodId", params.cannedFoodId.toString());
+  if (params?.page) searchParams.set("page", params.page.toString());
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+
+  const query = searchParams.toString();
+  const response = await fetch(
+    `${API_BASE_URL}/api/cats/${catId}/feeding-records${query ? `?${query}` : ""}`,
+    { credentials: "include" }
+  );
+  if (!response.ok) throw new Error("Failed to fetch feeding records");
+  return response.json();
+}
+
+export async function createFeedingRecord(
+  catId: number,
+  data: CreateFeedingRecordInput
+): Promise<FeedingRecord> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/cats/${catId}/feeding-records`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to create feeding record");
+  }
+  return response.json();
+}
+
+export async function updateFeedingRecord(
+  catId: number,
+  id: number,
+  data: UpdateFeedingRecordInput
+): Promise<FeedingRecord> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/cats/${catId}/feeding-records/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include",
+    }
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    throw new Error(error.message || "Failed to update feeding record");
+  }
+  return response.json();
+}
+
+export async function deleteFeedingRecord(
+  catId: number,
+  id: number
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/cats/${catId}/feeding-records/${id}`,
+    { method: "DELETE", credentials: "include" }
+  );
+  if (!response.ok) throw new Error("Failed to delete feeding record");
 }
 
 export async function batchCreateDishes(
