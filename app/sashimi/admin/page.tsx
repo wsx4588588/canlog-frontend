@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Calendar } from "lucide-react";
+import { Package, Calendar, ClipboardList } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -10,7 +10,7 @@ import {
 
 export default function SashimiAdminDashboard() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Link href="/sashimi/admin/products" className="block">
         <Card className="hover:shadow-md transition-shadow h-full">
           <CardHeader>
@@ -44,6 +44,25 @@ export default function SashimiAdminDashboard() {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               客戶 LIFF 看到的「今日漁獲」就是這裡設定的。可一鍵「從昨日複製」。
+            </p>
+          </CardContent>
+        </Card>
+      </Link>
+
+      <Link href="/sashimi/admin/orders" className="block">
+        <Card className="hover:shadow-md transition-shadow h-full">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 text-amber-600" />
+              </div>
+              <CardTitle>訂單管理</CardTitle>
+            </div>
+            <CardDescription>追蹤訂單狀態、付款情況</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              依狀態過濾訂單，點進去可以改製作進度、標示已付款。
             </p>
           </CardContent>
         </Card>

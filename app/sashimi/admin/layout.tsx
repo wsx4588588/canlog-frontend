@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldAlert, Package, Calendar, ChevronLeft } from "lucide-react";
+import { ShieldAlert, Package, Calendar, ClipboardList, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ interface NavLink {
 const NAV_LINKS: NavLink[] = [
   { href: "/sashimi/admin/products", label: "商品管理", icon: Package },
   { href: "/sashimi/admin/inventory", label: "今日庫存", icon: Calendar },
+  { href: "/sashimi/admin/orders", label: "訂單管理", icon: ClipboardList },
 ];
 
 export default function SashimiAdminLayout({
