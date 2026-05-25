@@ -129,7 +129,7 @@ export async function upsertInventory(
 
 export async function copyInventoryFromPrevious(
   date: string
-): Promise<{ date: string; items: InventoryRow[] }> {
+): Promise<{ date: string; sourceDate: string; items: InventoryRow[] }> {
   return fetchJson(`${BASE}/inventory/${date}/copy-from-previous`, {
     method: "POST",
   });

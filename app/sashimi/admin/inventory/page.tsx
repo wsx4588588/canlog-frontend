@@ -115,13 +115,13 @@ export default function SashimiInventoryPage() {
   }
 
   async function handleCopyFromPrevious() {
-    if (!confirm(`從前一日複製庫存到 ${date}？`)) return;
+    if (!confirm(`從最近一日有庫存的紀錄複製到 ${date}？`)) return;
     setCopying(true);
     setError(null);
     setSuccess(null);
     try {
-      await copyInventoryFromPrevious(date);
-      setSuccess("已從前一日複製");
+      const result = await copyInventoryFromPrevious(date);
+      setSuccess(`已從 ${result.sourceDate} 複製`);
       await reload();
     } catch (err) {
       setError((err as Error).message);
@@ -155,7 +155,7 @@ export default function SashimiInventoryPage() {
       {!hasAnyInventory && !loading && rows.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md px-3 py-3 flex items-center justify-between gap-3">
           <span className="text-sm">
-            {date} 尚未設定庫存。可以從前一日複製，或下方直接設定。
+            {date} 尚未設定庫存。可以從最近一日複製，或下方直接設定。
           </span>
           <Button
             variant="outline"
@@ -164,7 +164,7 @@ export default function SashimiInventoryPage() {
             disabled={copying}
           >
             <Copy className="w-4 h-4 mr-1" />
-            {copying ? "複製中..." : "從前一日複製"}
+            {copying ? "複製中..." : "從最近一日複製"}
           </Button>
         </div>
       )}

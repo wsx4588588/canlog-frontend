@@ -12,6 +12,7 @@ import {
   X,
   UtensilsCrossed,
   ClipboardList,
+  Fish,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
@@ -39,6 +40,11 @@ export function Header() {
       icon: UtensilsCrossed,
     });
     navItems.push({ href: "/orders", label: "訂單管理", icon: ClipboardList });
+    navItems.push({
+      href: "/sashimi/admin",
+      label: "生魚片後台",
+      icon: Fish,
+    });
   }
 
   return (
