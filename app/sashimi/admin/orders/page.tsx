@@ -75,7 +75,7 @@ export default function SashimiOrdersListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">訂單管理</h2>
           <p className="text-sm text-muted-foreground">
@@ -109,7 +109,62 @@ export default function SashimiOrdersListPage() {
         </div>
       )}
 
-      <div className="border rounded-md">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {loading ? (
+          <div className="text-center text-muted-foreground py-8">載入中...</div>
+        ) : orders.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">尚無訂單</div>
+        ) : (
+          orders.map((o) => (
+            <Link
+              key={o.id}
+              href={`/sashimi/admin/orders/${o.id}`}
+              className="block border rounded-md p-3 hover:bg-muted/30 active:bg-muted/50"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="font-mono text-sm text-blue-600">
+                  {o.orderNumber}
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <Badge variant={STATUS_VARIANTS[o.orderStatus]}>
+                    {o.orderStatus}
+                  </Badge>
+                  <Badge
+                    variant={o.paymentStatus === "已付" ? "default" : "outline"}
+                  >
+                    {o.paymentStatus}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-1 text-sm">
+                <div>
+                  <span className="font-medium">{o.customerName}</span>
+                  <span className="text-muted-foreground ml-2 text-xs">
+                    {o.customerPhone}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground line-clamp-2">
+                  {o.itemsSummary}
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="text-xs text-muted-foreground">
+                    {formatDate(o.createdAt)} · {o.pickupMethod}
+                    {o.pickupTime ? ` ${o.pickupTime}` : ""}
+                  </div>
+                  <div className="font-medium text-red-600">
+                    NT$ {o.totalAmount}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>

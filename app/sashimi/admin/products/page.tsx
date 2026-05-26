@@ -141,7 +141,7 @@ export default function SashimiProductsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">商品管理</h2>
           <p className="text-sm text-muted-foreground">
@@ -170,7 +170,62 @@ export default function SashimiProductsPage() {
         </div>
       )}
 
-      <div className="border rounded-md">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {loading ? (
+          <div className="text-center text-muted-foreground py-8">載入中...</div>
+        ) : products.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            尚無商品，點上方「新增商品」開始
+          </div>
+        ) : (
+          products.map((p) => (
+            <div
+              key={p.id}
+              className={`border rounded-md p-3 ${p.isActive ? "" : "opacity-60"}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {p.sku}
+                    </span>
+                    <span className="font-medium">{p.name}</span>
+                    {p.isActive ? (
+                      <Badge variant="default">上架中</Badge>
+                    ) : (
+                      <Badge variant="secondary">停售</Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {p.category} · 每{p.unit} · NT$ {p.price}
+                  </div>
+                  {p.description && (
+                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                      {p.description}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(p)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleActive(p)}
+                  >
+                    <Power className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>

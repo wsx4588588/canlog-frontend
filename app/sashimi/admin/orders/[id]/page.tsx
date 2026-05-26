@@ -139,11 +139,11 @@ export default function SashimiOrderDetailPage() {
           <CardHeader>
             <CardTitle className="text-base">訂單品項</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-20">SKU</TableHead>
+                  <TableHead className="w-16 sm:w-20">SKU</TableHead>
                   <TableHead>品名</TableHead>
                   <TableHead className="text-right">單價</TableHead>
                   <TableHead className="text-right">數量</TableHead>

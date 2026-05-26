@@ -153,7 +153,7 @@ export default function SashimiInventoryPage() {
       </div>
 
       {!hasAnyInventory && !loading && rows.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md px-3 py-3 flex items-center justify-between gap-3">
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-md px-3 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
           <span className="text-sm">
             {date} 尚未設定庫存。可以從最近一日複製，或下方直接設定。
           </span>
@@ -180,7 +180,99 @@ export default function SashimiInventoryPage() {
         </div>
       )}
 
-      <div className="border rounded-md">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {loading ? (
+          <div className="text-center text-muted-foreground py-8">載入中...</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            尚無上架中的商品，請先到「商品管理」新增
+          </div>
+        ) : (
+          rows.map((r) => (
+            <div
+              key={r.productId}
+              className={`border rounded-md p-3 space-y-2 ${
+                r.isAvailable ? "bg-white" : "bg-muted/30 opacity-70"
+              }`}
+            >
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={r.isAvailable}
+                  onChange={(e) =>
+                    patchRow(r.productId, { isAvailable: e.target.checked })
+                  }
+                  className="w-5 h-5 mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium">
+                    <span className="font-mono text-xs text-muted-foreground mr-2">
+                      {r.sku}
+                    </span>
+                    {r.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {r.category} · 每{r.unit} · 預設 NT$ {r.defaultPrice}
+                  </div>
+                </div>
+              </label>
+
+              {r.isAvailable && (
+                <div className="space-y-2 pl-7">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">
+                        今日售價
+                      </label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={r.todayPrice}
+                        onChange={(e) =>
+                          patchRow(r.productId, {
+                            todayPrice: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">
+                        庫存
+                      </label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={r.stockQty}
+                        onChange={(e) =>
+                          patchRow(r.productId, {
+                            stockQty: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">
+                      今日備註
+                    </label>
+                    <Input
+                      value={r.dailyNote}
+                      onChange={(e) =>
+                        patchRow(r.productId, { dailyNote: e.target.value })
+                      }
+                      placeholder="例：本日特鮮"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
@@ -265,8 +357,17 @@ export default function SashimiInventoryPage() {
         </Table>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving || rows.length === 0}>
+      <div
+        className="sticky bottom-0 z-10 -mx-4 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]
+                   bg-background/95 backdrop-blur-sm border-t flex
+                   md:static md:mx-0 md:px-0 md:py-0 md:bg-transparent md:border-0 md:justify-end"
+      >
+        <Button
+          onClick={handleSave}
+          disabled={saving || rows.length === 0}
+          size="lg"
+          className="w-full md:w-auto md:h-9 md:px-4 md:text-sm"
+        >
           <Save className="w-4 h-4 mr-1" />
           {saving ? "儲存中..." : "儲存全部"}
         </Button>
