@@ -169,12 +169,21 @@ export interface OrderDetail extends OrderSummary {
   }[];
 }
 
+export interface OrdersSummaryStats {
+  count: number;
+  totalAmount: number;
+  revenueAmount: number;
+  pendingAmount: number;
+  cancelledCount: number;
+}
+
 export interface OrdersListResponse {
   items: OrderSummary[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
+  summary: OrdersSummaryStats;
 }
 
 export async function listOrders(params: {
